@@ -12,7 +12,10 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true # Allows Gateway to discover services via Eureka
+          enabled: true
+      # Applies perimeter JWT validation across all gateway routes
+      default-filters:
+        - JwtAuthentication
       routes:
         # ==========================================
         # 1. Auth Service Route with Rate Limiting
@@ -29,13 +32,41 @@ spring:
                 redis-rate-limiter.requestedTokens: 1 # Each request consumes 1 token
                 key-resolver: "#{@ipKeyResolver}" # References your RateLimiterConfig Bean
 
+
+# ==========================================
+# ZidTech Common Security Configuration
+# ==========================================
+app:
+  security:
+    jwt-secret: ${JWT_SECRET}
+    issuer: shopping-cart-auth-service
+
+# ==========================================
+# Observability & Distributed Tracing
+# ==========================================
+management:
+  tracing:
+    sampling:
+      probability: 1.0 # 100% of requests are traced locally
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+# ==========================================
+# Consolidated Logging Configuration
+# ==========================================
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+  level:
+    org.springframework.cloud.gateway: DEBUG
+
+# ==========================================
+# Eureka Discovery Client Configuration
+# ==========================================
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true
-
-logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG
