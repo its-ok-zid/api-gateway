@@ -77,6 +77,13 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <!-- Add this block so Maven can find your library -->
+    <repositories>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/its-ok-zid/zidtech-common-security</url>
+        </repository>
+    </repositories>
 
     <dependencyManagement>
         <dependencies>
