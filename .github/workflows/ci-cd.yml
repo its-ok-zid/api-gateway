@@ -3,9 +3,12 @@ name: Microservice CI/CD Pipeline
 on:
   push:
     branches:
-      - '**' 
+      - '**'
 
 jobs:
+  # ==========================================
+  # STAGE 1: TEST (Quality Gate)
+  # ==========================================
   test:
     name: 1. Test & Coverage
     runs-on: ubuntu-latest
@@ -16,9 +19,21 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
+          # Tells Maven to look for these variables for the 'GitHub' server
+          server-id: 'github'
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+
       - name: Run Tests
+        env:
+          # Injects your GitHub username and your new PAT securely
+          MAVEN_USERNAME: ${{ github.actor }}
+          MAVEN_PASSWORD: ${{ secrets.PACKAGES_PAT }}
         run: ./mvnw clean verify
 
+  # ==========================================
+  # STAGE 2: BUILD (Compile JAR)
+  # ==========================================
   build:
     name: 2. Build JAR
     needs: test
@@ -30,15 +45,22 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
+          server-id: 'github'
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+
       - name: Compile and Package
+        env:
+          MAVEN_USERNAME: ${{ github.actor }}
+          MAVEN_PASSWORD: ${{ secrets.PACKAGES_PAT }}
         run: ./mvnw clean package -DskipTests
+
       - name: Upload JAR Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-jar
           path: target/*.jar
           retention-days: 1
-
   package:
     name: 3. Docker Package & Push
     needs: build
