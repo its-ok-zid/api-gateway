@@ -116,14 +116,3 @@ jobs:
           
           # 3. Retrieve the output from the previous job using the 'needs' context
           echo "Deploying Docker Tag: ${{ needs.package.outputs.docker_tag }}"
-  deploy:
-    name: 4. Deploy to Server
-    needs: package
-    runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'Production' || (github.ref_name == 'develop' && 'Development' || 'Sandbox') }}
-    steps:
-      - name: Execute Target Deployment
-        run: |
-          echo "Initiating deployment for Branch: ${{ github.ref_name }}"
-          echo "Target Environment: ${{ github.ref_name == 'main' && 'Production' || (github.ref_name == 'develop' && 'Development' || 'Sandbox') }}"
-          echo "Deploying Docker Tag: ${{ env.TAG }}"
